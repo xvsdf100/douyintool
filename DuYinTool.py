@@ -1,18 +1,40 @@
+import json
+
 import requests
 
 
-#获取真正的原始url
+# 获取真正的原始url
 def get_duyin_raw_url(url):
     headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                       'Chrome/65.0.3325.181 Safari/537.36'}
-    http_result = requests.get(url, headers=headers)
-    if http_result.ok:
-        raw_url = process_raw_video_url(str(http_result.content, "utf-8"))
-        if len(raw_url) > 0:
-            raw_url = raw_url.replace("playwm", "play")
-            return raw_url
+    try:
+        http_result = requests.get(url, headers=headers, allow_redirects=False)
+        if http_result.status_code == 302:
+            url = http_result.headers["location"]
+            video_id = get_video_id_from_url(url)
+            if len(video_id) > 0:
+                url = "https://www.iesdouyin.com/web/api/v2/aweme/iteminfo/?item_ids=" + video_id
+                http_result = requests.get(url, headers=headers)
+                ret_info = json.loads(http_result.content)
+                real_url = str(ret_info['item_list'][0]['video']['play_addr']['url_list'][0])
+                real_url = real_url.replace("playwm", "play")
+                return real_url
+    except:
+        pass
 
+    return ""
+
+
+def get_video_id_from_url(url):
+    find_keys = "/share/video/"
+    find_pos = url.find(find_keys)
+    if find_pos != -1:
+        find_pos += len(find_keys)
+        new_url = url[find_pos:-1]
+        str_array = new_url.split("/")
+        if len(str_array) > 0:
+            return str_array[0]
     return ""
 
 
@@ -34,9 +56,10 @@ def process_raw_video_url(reuslt):
 
 
 def main():
-    test_url = "https://v.douyin.com/tAUFJ4/"
+    test_url = "https://v.douyin.com/vqUNVw/"
 
     raw_url = get_duyin_raw_url(test_url)
     print(raw_url)
+
 
 main()
