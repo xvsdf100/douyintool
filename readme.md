@@ -17,4 +17,7 @@ https://www.codercto.com/a/74766.html
 ---
 因为我在别的工程用node js 写，我就懒得python写一遍了，如果自己想用python,自己按照我的node js 写一下就可以了
 
+---
+## 运行
+node dy.js
 
